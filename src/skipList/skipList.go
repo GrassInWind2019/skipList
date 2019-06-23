@@ -11,7 +11,7 @@ import (
 )
 
 type Node struct {
-	O       userDefined.Obj
+	O       *userDefined.Obj
 	forward []*Node
 }
 
@@ -31,7 +31,7 @@ func (s *SkipList) searchInternal(o *userDefined.Obj) (*Node, error) {
 
 	for i := maxLevel - 1; i >= 0; i-- {
 		for {
-			if p.forward[i] != nil && (&(p.forward[i].O)).Compare(o) {
+			if p.forward[i] != nil && p.forward[i].O.Compare(o) {
 				p = p.forward[i]
 			} else {
 				break
@@ -53,8 +53,8 @@ func (s *SkipList) Search(o *userDefined.Obj) (userDefined.Obj, error) {
 
 	res, err := s.searchInternal(o)
 	if err == nil {
-		if !(&(res.O)).Compare(o) && !o.Compare(&(res.O)) {
-			return res.O, nil
+		if !res.O.Compare(o) && !o.Compare(res.O) {
+			return *(res.O), nil
 		} else {
 			return *o, errors.New("cannot find object in skip list")
 		}
@@ -75,8 +75,8 @@ func (s *SkipList) SearchRange(minObj, maxObj *userDefined.Obj) ([]userDefined.O
 	}
 
 	for {
-		if p != nil && (&(p.O)).Compare(maxObj) {
-			res = append(res, p.O)
+		if p != nil && p.O.Compare(maxObj) {
+			res = append(res, *(p.O))
 			p = p.forward[0]
 		} else {
 			break
@@ -99,7 +99,7 @@ func (s *SkipList) Traverse() {
 	for i := maxLevel - 1; i >= 0; i-- {
 		for {
 			if p != nil {
-				(&(p.O)).PrintObj()
+				p.O.PrintObj()
 				if p.forward[i] != nil {
 					fmt.Print("-->")
 				}
@@ -119,13 +119,13 @@ func (s *SkipList) Insert(obj *userDefined.Obj) (bool, error) {
 		return false, errors.New("skip list head is null, must use CreateSkipList() before insert")
 	}
 	newNode := new(Node)
-	newNode.O = *obj
+	newNode.O = obj
 	newNode.forward = make([]*Node, maxLevel)
 	level := createNewNodeLevel()
 
 	for i := level; i >= 0; i-- {
 		for {
-			if p.forward[i] != nil && (&(p.forward[i].O)).Compare(obj) {
+			if p.forward[i] != nil && p.forward[i].O.Compare(obj) {
 				p = p.forward[i]
 			} else {
 				break
@@ -148,7 +148,7 @@ func (s *SkipList) RemoveNode(obj *userDefined.Obj) (bool, error) {
 
 	for i := maxLevel - 1; i >= 0; i-- {
 		for {
-			if p.forward[i] != nil && (&(p.forward[i].O)).Compare(obj) {
+			if p.forward[i] != nil && p.forward[i].O.Compare(obj) {
 				p = p.forward[i]
 			} else {
 				break
@@ -158,7 +158,7 @@ func (s *SkipList) RemoveNode(obj *userDefined.Obj) (bool, error) {
 	}
 	p = p.forward[0]
 
-	if p == nil || ((&(p.O)).Compare(obj) && obj.Compare(&(p.O))) {
+	if p == nil || (p.O.Compare(obj) && obj.Compare(p.O)) {
 		return false, errors.New("cannot find object")
 	}
 
@@ -181,7 +181,7 @@ func CreateSkipList(minObj *userDefined.Obj, maxlevel int) (*SkipList, error) {
 	s := new(SkipList)
 	s.head = new(Node)
 	s.head.forward = make([]*Node, maxLevel)
-	s.head.O = *minObj
+	s.head.O = minObj
 
 	return s, nil
 }

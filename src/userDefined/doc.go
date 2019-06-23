@@ -1,6 +1,6 @@
-// interface project doc.go
+// userDefined project doc.go
 
 /*
-interface document
+userDefined document
 */
 package userDefined
