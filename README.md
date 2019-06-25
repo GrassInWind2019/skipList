@@ -21,21 +21,21 @@ type SkipList struct {
 }  
 
 目前只实现了针对int类型数据的接口，若使用其他类型，需要实现下面这个接口(在src/userDefined/userDefined.go)  
-type SkipListObj interface {
-	Compare(obj SkipListObj) bool
-	PrintObj()
-}
-其中Compare()表示数据大小比较，对于int类型如下 
-由于Go内置类型用户不能新建接口（会编译失败），可以通过type给int取个别名来实现接口
-type myInt int
+type SkipListObj interface {  
+	Compare(obj SkipListObj) bool  
+	PrintObj()  
+}  
+其中Compare()表示数据大小比较，对于int类型如下   
+由于Go内置类型用户不能新建接口（会编译失败），可以通过type给int取个别名来实现接口  
+type myInt int  
 
-func (a *myInt) Compare(b skipList.SkipListObj) bool {
-	return *a < *b.(*myInt)
-}
+func (a *myInt) Compare(b skipList.SkipListObj) bool {  
+	return *a < *b.(*myInt)  
+}  
 
 PrintObj()用于打印数据的，主要是用于遍历显示跳表的Traverse()，对于int类型如下  
-func (a *myInt) PrintObj() {
-	fmt.Print(*a)
+func (a *myInt) PrintObj() {  
+	fmt.Print(*a)  
 } 
 
 使用示例在src/main/example.go  
