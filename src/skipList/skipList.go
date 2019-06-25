@@ -7,11 +7,16 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/skipList/src/userDefined"
+	_ "github.com/skipList/src/userDefined"
 )
 
+type SkipListObj interface {
+	Compare(obj SkipListObj) bool
+	PrintObj()
+}
+
 type Node struct {
-	O       *userDefined.Obj
+	O       SkipListObj
 	forward []*Node
 }
 
@@ -23,7 +28,7 @@ type SkipList struct {
 var maxLevel int
 
 //try to find the first node which not match the user defined Compare() condition
-func (s *SkipList) searchInternal(o *userDefined.Obj) (*Node, error) {
+func (s *SkipList) searchInternal(o SkipListObj) (*Node, error) {
 	p := s.head
 	if p == nil {
 		return nil, errors.New("skip list head is null, must use CreateSkipList() before Search")
@@ -46,25 +51,25 @@ func (s *SkipList) searchInternal(o *userDefined.Obj) (*Node, error) {
 	}
 }
 
-func (s *SkipList) Search(o *userDefined.Obj) (userDefined.Obj, error) {
+func (s *SkipList) Search(o SkipListObj) (SkipListObj, error) {
 	if s == nil {
-		return *o, errors.New("skiplist pointer is nil")
+		return o, errors.New("skiplist pointer is nil")
 	}
 
 	res, err := s.searchInternal(o)
 	if err == nil {
 		if !res.O.Compare(o) && !o.Compare(res.O) {
-			return *(res.O), nil
+			return res.O, nil
 		} else {
-			return *o, errors.New("cannot find object in skip list")
+			return o, errors.New("cannot find object in skip list")
 		}
 	} else {
-		return *o, err
+		return o, err
 	}
 }
 
-func (s *SkipList) SearchRange(minObj, maxObj *userDefined.Obj) ([]userDefined.Obj, error) {
-	res := make([]userDefined.Obj, 0)
+func (s *SkipList) SearchRange(minObj, maxObj SkipListObj) ([]SkipListObj, error) {
+	res := make([]SkipListObj, 0)
 	if s == nil {
 		return res, errors.New("skip list pointer is nil")
 	}
@@ -76,7 +81,7 @@ func (s *SkipList) SearchRange(minObj, maxObj *userDefined.Obj) ([]userDefined.O
 
 	for {
 		if p != nil && p.O.Compare(maxObj) {
-			res = append(res, *(p.O))
+			res = append(res, p.O)
 			p = p.forward[0]
 		} else {
 			break
@@ -113,7 +118,7 @@ func (s *SkipList) Traverse() {
 	}
 }
 
-func (s *SkipList) Insert(obj *userDefined.Obj) (bool, error) {
+func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
 	var p *Node = s.head
 	if s.head == nil {
 		return false, errors.New("skip list head is null, must use CreateSkipList() before insert")
@@ -138,7 +143,7 @@ func (s *SkipList) Insert(obj *userDefined.Obj) (bool, error) {
 	return true, nil
 }
 
-func (s *SkipList) RemoveNode(obj *userDefined.Obj) (bool, error) {
+func (s *SkipList) RemoveNode(obj SkipListObj) (bool, error) {
 	var update []*Node = make([]*Node, maxLevel)
 	p := s.head
 
@@ -158,7 +163,7 @@ func (s *SkipList) RemoveNode(obj *userDefined.Obj) (bool, error) {
 	}
 	p = p.forward[0]
 
-	if p == nil || (p.O.Compare(obj) && obj.Compare(p.O)) {
+	if p == nil || p.O.Compare(obj) || obj.Compare(p.O) {
 		return false, errors.New("cannot find object")
 	}
 
@@ -169,7 +174,7 @@ func (s *SkipList) RemoveNode(obj *userDefined.Obj) (bool, error) {
 	return true, nil
 }
 
-func CreateSkipList(minObj *userDefined.Obj, maxlevel int) (*SkipList, error) {
+func CreateSkipList(minObj SkipListObj, maxlevel int) (*SkipList, error) {
 	if minObj == nil {
 		return nil, errors.New("minObj paramter is null")
 	}

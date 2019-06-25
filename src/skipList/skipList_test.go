@@ -6,16 +6,24 @@ import (
 	"math/rand"
 	"testing"
 	"time"
-
-	"github.com/skipList/src/userDefined"
 )
 
 const INT_MAX = int(^uint(0) >> 1)
 const INT_MIN = ^INT_MAX
 
+type myInt int
+
+func (a *myInt) Compare(b SkipListObj) bool {
+	return *a < *b.(*myInt)
+}
+
+func (a *myInt) PrintObj() {
+	fmt.Print(*a)
+}
+
 func TestCreateSkipList(t *testing.T) {
-	var obj userDefined.Obj
-	obj.Data = INT_MIN
+	var obj myInt
+	obj = myInt(INT_MIN)
 	s, err := CreateSkipList(&obj, 10)
 	if s == nil {
 		fmt.Print(err)
@@ -24,9 +32,9 @@ func TestCreateSkipList(t *testing.T) {
 }
 
 func TestOperations(t *testing.T) {
-	var obj userDefined.Obj
-	obj.Data = INT_MIN
-	s, err := CreateSkipList(&obj, 10)
+	var minObj, obj myInt
+	minObj = myInt(INT_MIN)
+	s, err := CreateSkipList(&minObj, 10)
 	if s == nil {
 		fmt.Print(err)
 		t.Errorf("create skip list failed")
@@ -34,25 +42,26 @@ func TestOperations(t *testing.T) {
 
 	for i := 0; i < 10; i++ {
 		rand.Seed(time.Now().UnixNano())
-		obj.Data = rand.Intn(50)
-		res, err := s.Insert(&obj)
+		insertObj := new(myInt)
+		*insertObj = myInt(rand.Intn(50))
+		res, err := s.Insert(insertObj)
 		if res == true {
-			fmt.Println("insert obj ", obj.Data, " success")
+			fmt.Println("insert obj ", obj, " success")
 		} else {
 			fmt.Print(err)
-			t.Errorf("insert obj %d failed: ", obj.Data)
+			t.Errorf("insert obj %d failed: ", obj)
 		}
 		//sleep 10ms
 		time.Sleep(10000000)
 		rand.Seed(time.Now().UnixNano())
-		obj.Data = rand.Intn(50)
+		obj = myInt(rand.Intn(50))
 		_, err = s.Search(&obj)
 		_, err2 := s.RemoveNode(&obj)
 		if err == nil && err2 != nil {
 			fmt.Print(err)
-			t.Errorf("remove obj %d failed: ", obj.Data)
+			t.Errorf("remove obj %d failed: ", obj)
 		} else {
-			fmt.Printf("remove obj %d success\n", obj.Data)
+			fmt.Printf("remove obj %d success\n", obj)
 		}
 	}
 	fmt.Println("start print the skip list")
