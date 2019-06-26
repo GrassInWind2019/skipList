@@ -80,4 +80,10 @@ func main() {
 	searchRangeExample(s)
 	fmt.Println("start print the skip list")
 	s.Traverse()
+	length, err := s.LenOfSkipList()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(length)
 }

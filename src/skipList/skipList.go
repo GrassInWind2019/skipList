@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-
-	_ "github.com/skipList/src/userDefined"
 )
 
 type SkipListObj interface {
@@ -21,11 +19,10 @@ type Node struct {
 }
 
 type SkipList struct {
-	head   *Node
-	length int
+	head     *Node
+	length   int
+	maxLevel int
 }
-
-var maxLevel int
 
 //try to find the first node which not match the user defined Compare() condition
 func (s *SkipList) searchInternal(o SkipListObj) (*Node, error) {
@@ -34,7 +31,7 @@ func (s *SkipList) searchInternal(o SkipListObj) (*Node, error) {
 		return nil, errors.New("skip list head is null, must use CreateSkipList() before Search")
 	}
 
-	for i := maxLevel - 1; i >= 0; i-- {
+	for i := s.maxLevel - 1; i >= 0; i-- {
 		for {
 			if p.forward[i] != nil && p.forward[i].O.Compare(o) {
 				p = p.forward[i]
@@ -101,7 +98,7 @@ func (s *SkipList) Traverse() {
 		return
 	}
 
-	for i := maxLevel - 1; i >= 0; i-- {
+	for i := s.maxLevel - 1; i >= 0; i-- {
 		for {
 			if p != nil {
 				p.O.PrintObj()
@@ -125,8 +122,8 @@ func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
 	}
 	newNode := new(Node)
 	newNode.O = obj
-	newNode.forward = make([]*Node, maxLevel)
-	level := createNewNodeLevel()
+	newNode.forward = make([]*Node, s.maxLevel)
+	level := s.createNewNodeLevel()
 
 	for i := level; i >= 0; i-- {
 		for {
@@ -140,18 +137,19 @@ func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
 		newNode.forward[i] = p.forward[i]
 		p.forward[i] = newNode
 	}
+	s.length++
+
 	return true, nil
 }
 
 func (s *SkipList) RemoveNode(obj SkipListObj) (bool, error) {
-	var update []*Node = make([]*Node, maxLevel)
-	p := s.head
-
 	if s == nil || s.head == nil {
 		return false, errors.New("skip list is null, nothing to remove")
 	}
+	var update []*Node = make([]*Node, s.maxLevel)
+	p := s.head
 
-	for i := maxLevel - 1; i >= 0; i-- {
+	for i := s.maxLevel - 1; i >= 0; i-- {
 		for {
 			if p.forward[i] != nil && p.forward[i].O.Compare(obj) {
 				p = p.forward[i]
@@ -167,11 +165,36 @@ func (s *SkipList) RemoveNode(obj SkipListObj) (bool, error) {
 		return false, errors.New("cannot find object")
 	}
 
-	for i := maxLevel - 1; i >= 0; i-- {
+	for i := s.maxLevel - 1; i >= 0; i-- {
 		update[i].forward[i] = p.forward[i]
 	}
+	s.length--
 
 	return true, nil
+}
+
+func (s *SkipList) ClearSkipList() error {
+	if s == nil {
+		return errors.New("skip list not exist")
+	}
+	if s.head == nil {
+		return errors.New("skip list head is null, must use CreateSkipList() to create skip list")
+	}
+
+	for i := s.maxLevel; i >= 0; i-- {
+		s.head.forward[i] = nil
+	}
+	s.length = 0
+
+	return nil
+}
+
+func (s *SkipList) LenOfSkipList() (int, error) {
+	if s == nil || s.head == nil {
+		return 0, errors.New("skip list is null")
+	}
+
+	return s.length, nil
 }
 
 func CreateSkipList(minObj SkipListObj, maxlevel int) (*SkipList, error) {
@@ -182,16 +205,26 @@ func CreateSkipList(minObj SkipListObj, maxlevel int) (*SkipList, error) {
 		return nil, errors.New("Max level of skip list must greater than 0")
 	}
 
-	maxLevel = maxlevel
 	s := new(SkipList)
 	s.head = new(Node)
-	s.head.forward = make([]*Node, maxLevel)
+	s.maxLevel = maxlevel
+	s.head.forward = make([]*Node, maxlevel)
 	s.head.O = minObj
+	//The length of skip list didn't include the head node
+	s.length = 0
 
 	return s, nil
 }
 
-func createNewNodeLevel() int {
+func (s *SkipList) createNewNodeLevel() int {
+	var level int = 0
+
 	rand.Seed(time.Now().UnixNano())
-	return rand.Intn(maxLevel - 1)
+	for {
+		if rand.Intn(2) == 1 {
+			break
+		}
+		level++
+	}
+	return level
 }
