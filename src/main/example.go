@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/skipList/src/skipList"
@@ -67,23 +68,36 @@ func operationsExample(s *skipList.SkipList) {
 	}
 }
 
-func main() {
-	minObj := new(myInt)
-	*minObj = myInt(INT_MIN)
-	s, err := skipList.CreateSkipList(minObj, 10)
-	if s == nil {
-		fmt.Println("create skip list failed: ", err)
-		return
-	}
+func testSkipList(wg *sync.WaitGroup, s *skipList.SkipList, i int) {
+	defer wg.Done()
 
 	operationsExample(s)
 	searchRangeExample(s)
-	fmt.Println("start print the skip list")
+	fmt.Printf("Goroutine %d start print the skip list\n", i)
 	s.Traverse()
 	length, err := s.LenOfSkipList()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(length)
+	fmt.Printf("Goroutine %d skip list length is %d\n", i, length)
+}
+
+func main() {
+	wg := sync.WaitGroup{}
+
+	minObj := new(myInt)
+	*minObj = myInt(INT_MIN)
+	s, err := skipList.CreateSkipList(minObj, 10, 1)
+	if s == nil {
+		fmt.Println("create skip list failed: ", err)
+		return
+	}
+
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go testSkipList(&wg, s, i)
+	}
+	//wait all goroutines finish
+	wg.Wait()
 }

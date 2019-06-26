@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -22,14 +23,52 @@ type SkipList struct {
 	head     *Node
 	length   int
 	maxLevel int
+	lockType int
+	lock     sync.Locker
+}
+
+// mode = 1 : exclusive lock
+// mode = 2 : if lockType = 1, it is exclusive lock(Mutex); otherwise, it is shared lock(RWMutex)
+// for other mode: no lock
+func (s *SkipList) lockList(mode int) {
+	if s.lockType == 0 {
+		return
+	}
+	switch mode {
+	case 1:
+		s.lock.Lock()
+	case 2:
+		if s.lockType == 1 {
+			s.lock.Lock()
+		} else {
+			s.lock.(*sync.RWMutex).RLock()
+		}
+	default:
+		return
+	}
+}
+
+func (s *SkipList) unLockList(mode int) {
+	if s.lockType == 0 {
+		return
+	}
+	switch mode {
+	case 1:
+		s.lock.Unlock()
+	case 2:
+		if s.lockType == 1 {
+			s.lock.Unlock()
+		} else {
+			s.lock.(*sync.RWMutex).RUnlock()
+		}
+	default:
+		return
+	}
 }
 
 //try to find the first node which not match the user defined Compare() condition
 func (s *SkipList) searchInternal(o SkipListObj) (*Node, error) {
 	p := s.head
-	if p == nil {
-		return nil, errors.New("skip list head is null, must use CreateSkipList() before Search")
-	}
 
 	for i := s.maxLevel - 1; i >= 0; i-- {
 		for {
@@ -53,6 +92,8 @@ func (s *SkipList) Search(o SkipListObj) (SkipListObj, error) {
 		return o, errors.New("skiplist pointer is nil")
 	}
 
+	s.lockList(2)
+	defer s.unLockList(2)
 	res, err := s.searchInternal(o)
 	if err == nil {
 		if !res.O.Compare(o) && !o.Compare(res.O) {
@@ -70,6 +111,9 @@ func (s *SkipList) SearchRange(minObj, maxObj SkipListObj) ([]SkipListObj, error
 	if s == nil {
 		return res, errors.New("skip list pointer is nil")
 	}
+
+	s.lockList(2)
+	defer s.unLockList(2)
 
 	p, err := s.searchInternal(minObj)
 	if err != nil {
@@ -98,6 +142,9 @@ func (s *SkipList) Traverse() {
 		return
 	}
 
+	s.lockList(2)
+	defer s.unLockList(2)
+
 	for i := s.maxLevel - 1; i >= 0; i-- {
 		for {
 			if p != nil {
@@ -116,14 +163,17 @@ func (s *SkipList) Traverse() {
 }
 
 func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
-	var p *Node = s.head
 	if s.head == nil {
 		return false, errors.New("skip list head is null, must use CreateSkipList() before insert")
 	}
+	var p *Node = s.head
 	newNode := new(Node)
 	newNode.O = obj
 	newNode.forward = make([]*Node, s.maxLevel)
 	level := s.createNewNodeLevel()
+
+	s.lockList(1)
+	defer s.unLockList(1)
 
 	for i := level; i >= 0; i-- {
 		for {
@@ -149,6 +199,8 @@ func (s *SkipList) RemoveNode(obj SkipListObj) (bool, error) {
 	var update []*Node = make([]*Node, s.maxLevel)
 	p := s.head
 
+	s.lockList(1)
+	defer s.unLockList(1)
 	for i := s.maxLevel - 1; i >= 0; i-- {
 		for {
 			if p.forward[i] != nil && p.forward[i].O.Compare(obj) {
@@ -181,6 +233,9 @@ func (s *SkipList) ClearSkipList() error {
 		return errors.New("skip list head is null, must use CreateSkipList() to create skip list")
 	}
 
+	s.lockList(1)
+	defer s.unLockList(1)
+
 	for i := s.maxLevel; i >= 0; i-- {
 		s.head.forward[i] = nil
 	}
@@ -194,12 +249,26 @@ func (s *SkipList) LenOfSkipList() (int, error) {
 		return 0, errors.New("skip list is null")
 	}
 
+	s.lockList(2)
+	defer s.unLockList(2)
+
 	return s.length, nil
 }
 
-func CreateSkipList(minObj SkipListObj, maxlevel int) (*SkipList, error) {
+func CreateSkipList(minObj SkipListObj, args ...int) (*SkipList, error) {
 	if minObj == nil {
 		return nil, errors.New("minObj paramter is null")
+	}
+	var maxlevel, mode int
+	for i, v := range args {
+		switch i {
+		case 0:
+			maxlevel = v
+		case 1:
+			mode = v
+		default:
+			return nil, errors.New("Too many arguments, expect 2 or 3 arguments")
+		}
 	}
 	if maxlevel <= 0 {
 		return nil, errors.New("Max level of skip list must greater than 0")
@@ -212,6 +281,13 @@ func CreateSkipList(minObj SkipListObj, maxlevel int) (*SkipList, error) {
 	s.head.O = minObj
 	//The length of skip list didn't include the head node
 	s.length = 0
+	if mode == 1 {
+		s.lockType = 1
+		s.lock = new(sync.Mutex)
+	} else if mode == 2 {
+		s.lockType = 2
+		s.lock = new(sync.RWMutex)
+	}
 
 	return s, nil
 }
