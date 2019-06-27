@@ -45,18 +45,22 @@ func operationsExample(s *skipList.SkipList) {
 	for i := 0; i < 10; i++ {
 		rand.Seed(time.Now().UnixNano())
 		insertObj := new(myInt)
-		*insertObj = myInt(rand.Intn(50))
+		*insertObj = myInt(rand.Intn(20))
+		//fmt.Println("generate insert obj ", *insertObj)
+		s.Insert(insertObj)
 		t, err := s.Insert(insertObj)
 		if t == true {
 			fmt.Println("insert obj ", *insertObj, " success")
 		} else {
 			fmt.Printf("insert obj %d failed: ", *insertObj, err)
 		}
-		//sleep 10ms
-		time.Sleep(10000000)
+		//sleep 1ms
+		time.Sleep(1000000)
 		rand.Seed(time.Now().UnixNano())
-		obj = myInt(rand.Intn(50))
+		obj = myInt(rand.Intn(20))
 		//search and delete a random generated data
+		s.Search(&obj)
+		s.RemoveNode(&obj)
 		_, err = s.Search(&obj)
 		_, err2 := s.RemoveNode(&obj)
 		if err == nil && err2 != nil {
@@ -88,13 +92,13 @@ func main() {
 
 	minObj := new(myInt)
 	*minObj = myInt(INT_MIN)
-	s, err := skipList.CreateSkipList(minObj, 10, 1)
+	s, err := skipList.CreateSkipList(minObj, 10, 2)
 	if s == nil {
 		fmt.Println("create skip list failed: ", err)
 		return
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 3; i++ {
 		wg.Add(1)
 		go testSkipList(&wg, s, i)
 	}

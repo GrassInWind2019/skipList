@@ -15,8 +15,9 @@ type SkipListObj interface {
 }
 
 type Node struct {
-	O       SkipListObj
-	forward []*Node
+	O        SkipListObj
+	forward  []*Node
+	curLevel int
 }
 
 type SkipList struct {
@@ -177,6 +178,9 @@ func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
 
 	for i := level; i >= 0; i-- {
 		for {
+			if p == nil {
+				s.Traverse()
+			}
 			if p.forward[i] != nil && p.forward[i].O.Compare(obj) {
 				p = p.forward[i]
 			} else {
@@ -187,6 +191,7 @@ func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
 		newNode.forward[i] = p.forward[i]
 		p.forward[i] = newNode
 	}
+	newNode.curLevel = level
 	s.length++
 
 	return true, nil
@@ -201,6 +206,7 @@ func (s *SkipList) RemoveNode(obj SkipListObj) (bool, error) {
 
 	s.lockList(1)
 	defer s.unLockList(1)
+
 	for i := s.maxLevel - 1; i >= 0; i-- {
 		for {
 			if p.forward[i] != nil && p.forward[i].O.Compare(obj) {
@@ -217,7 +223,7 @@ func (s *SkipList) RemoveNode(obj SkipListObj) (bool, error) {
 		return false, errors.New("cannot find object")
 	}
 
-	for i := s.maxLevel - 1; i >= 0; i-- {
+	for i := p.curLevel; i >= 0; i-- {
 		update[i].forward[i] = p.forward[i]
 	}
 	s.length--
@@ -297,7 +303,7 @@ func (s *SkipList) createNewNodeLevel() int {
 
 	rand.Seed(time.Now().UnixNano())
 	for {
-		if rand.Intn(2) == 1 {
+		if rand.Intn(2) == 1 || level >= s.maxLevel-1 {
 			break
 		}
 		level++
