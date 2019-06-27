@@ -46,7 +46,6 @@ func operationsExample(s *skipList.SkipList) {
 		rand.Seed(time.Now().UnixNano())
 		insertObj := new(myInt)
 		*insertObj = myInt(rand.Intn(20))
-		//fmt.Println("generate insert obj ", *insertObj)
 		s.Insert(insertObj)
 		t, err := s.Insert(insertObj)
 		if t == true {

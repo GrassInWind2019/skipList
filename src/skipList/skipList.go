@@ -28,9 +28,11 @@ type SkipList struct {
 	lock     sync.Locker
 }
 
+//lockType = 0, no lock
+//lockType = 1, Mutex
+//lockType = 2, RWMutex
 // mode = 1 : exclusive lock
-// mode = 2 : if lockType = 1, it is exclusive lock(Mutex); otherwise, it is shared lock(RWMutex)
-// for other mode: no lock
+// mode = 2 : if lockType = 1, it is exclusive lock; if lockType = 2, it is shared lock
 func (s *SkipList) lockList(mode int) {
 	if s.lockType == 0 {
 		return
@@ -41,7 +43,7 @@ func (s *SkipList) lockList(mode int) {
 	case 2:
 		if s.lockType == 1 {
 			s.lock.Lock()
-		} else {
+		} else if s.lockType == 2 {
 			s.lock.(*sync.RWMutex).RLock()
 		}
 	default:
@@ -59,7 +61,7 @@ func (s *SkipList) unLockList(mode int) {
 	case 2:
 		if s.lockType == 1 {
 			s.lock.Unlock()
-		} else {
+		} else if s.lockType == 2 {
 			s.lock.(*sync.RWMutex).RUnlock()
 		}
 	default:
