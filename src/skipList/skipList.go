@@ -180,7 +180,7 @@ func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
 	s.lockList(1)
 	defer s.unLockList(1)
 
-	for i := level; i >= 0; i-- {
+	for i := s.maxLevel - 1; i >= 0; i-- {
 		for {
 			if p.forward[i] != nil && p.forward[i].O.Compare(obj) {
 				p = p.forward[i]
@@ -189,8 +189,11 @@ func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
 			}
 		}
 		//find the last Node which match user defined Compare() condition in i level
-		newNode.forward[i] = p.forward[i]
-		p.forward[i] = newNode
+		//insert new Node after the node
+		if i <= level {
+			newNode.forward[i] = p.forward[i]
+			p.forward[i] = newNode
+		}
 	}
 	newNode.curLevel = level
 	s.length++
