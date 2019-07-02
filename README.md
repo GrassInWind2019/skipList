@@ -13,6 +13,7 @@
 ![图片不能显示](https://github.com/GrassInWind2019/skipList/blob/master/skipList.png)
 ## skip list实现简要介绍  
 本人实现的skipList结构如下(在src/skipList/skipList.go)  
+```
 type Node struct {  
 	O        SkipListObj  
 	forward  []*Node  
@@ -26,26 +27,30 @@ type SkipList struct {
 	lockType int  
 	lock     sync.Locker  
 }  
-
+```  
 目前只实现了针对int类型数据的接口，若使用其他类型，需要实现下面这个接口(示例实现见src/main/example.go)  
+```
 type SkipListObj interface {  
 	Compare(obj SkipListObj) bool  
 	PrintObj()  
 }  
+```  
 其中Compare()表示数据大小比较，   
 一开始本想用Compare(obj interface{}) bool作为接口，但是编译报错，提示type interface {} is interface with no methods，于是改用了上面的接口  
 由于Go内置类型用户不能新建接口（会编译失败，对于int类型提示cannot define new methods on non-local type int），可以通过type给int取个别名来实现接口  
+```
 type myInt int  
 
 func (a *myInt) Compare(b skipList.SkipListObj) bool {  
 	return *a < *b.(*myInt)  
 }  
-
-PrintObj()用于打印数据的，主要是用于遍历显示跳表的Traverse()，对于int类型如下  
+```  
+PrintObj()用于打印数据的，主要是用于遍历显示跳表的Traverse()，对于int类型如下 
+```
 func (a *myInt) PrintObj() {  
 	fmt.Print(*a)  
 } 
-
+```  
 CreateSkipList用于创建一个skip list，需要传入一个对任意其他对象Compare()函数都返回false的对象（例如对于example的实现就是传入最小的int整数），  
 还需要传入一个表示skip list最大层数以及一个可选的参数mode表示创建的skip list的锁类型，若  
 mode = 1, 则为互斥锁  
@@ -90,6 +95,7 @@ Insert()用于在skip list中插入一个对象
 func (s *SkipList) Insert(obj SkipListObj) (bool, error)
 
 createNewNodeLevel()用于Insert()方法中，为新对象产生其所在的层级  
+```
 func (s *SkipList) createNewNodeLevel() int {  
 	var level int = 0  
 
@@ -102,7 +108,7 @@ func (s *SkipList) createNewNodeLevel() int {
         }  
         return level  
 } 
-  
+```  
 Traverse()用于遍历打印skip list  
 func (s *SkipList) Traverse()  
   
