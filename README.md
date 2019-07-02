@@ -10,7 +10,7 @@
 
 # skipList
 跳表示意图
-![图片不能显示](https://github.com/GrassInWind2019/skipList/skipList.png)
+![图片不能显示](https://github.com/GrassInWind2019/skipList/blob/master/skipList.png)
 
 本人实现的skipList结构如下(在src/skipList/skipList.go)  
 type Node struct {  
@@ -45,4 +45,4 @@ func (a *myInt) PrintObj() {
 UT示例为src/skipList/skipList_test.go  
 
 使用LiteIDE（一个轻量级的Go IDE）运行example结果如下：
-![图片不能显示](https://github.com/GrassInWind2019/skipList/example_run_result.png)
+![图片不能显示](https://github.com/GrassInWind2019/skipList/blob/master/example_run_result.png)
