@@ -1,4 +1,4 @@
-#跳表简介  
+# 跳表简介  
 跳跃链表是对链表的改进，链表虽然节省空间，但是查找时间复杂度为O（n），效率比较低。
 跳跃链表的查找、插入、删除等操作的期望时间复杂度为O(logn)，效率比链表提高了很多。
 跳表的基本性质
@@ -9,6 +9,9 @@
 5. 每个节点包含两个指针，一个指向同一链表的下一个元素，一个指向下面一层的元素
 
 # skipList
+跳表示意图
+![图片不能显示](https://github.com/GrassInWind2019/skipList/skipList.png)
+
 本人实现的skipList结构如下(在src/skipList/skipList.go)  
 type Node struct {  
 	O       *userDefined.Obj  
@@ -42,37 +45,4 @@ func (a *myInt) PrintObj() {
 UT示例为src/skipList/skipList_test.go  
 
 使用LiteIDE（一个轻量级的Go IDE）运行example结果如下：
-insert obj  39  success  
-remove obj 7 success  
-insert obj  7  success  
-remove obj 19 success  
-insert obj  19  success  
-remove obj 38 success  
-insert obj  38  success  
-remove obj 24 success  
-insert obj  24  success  
-remove obj 5 success  
-insert obj  5  success  
-remove obj 43 success  
-insert obj  43  success  
-remove obj 9 success  
-insert obj  31  success  
-remove obj 37 success  
-insert obj  37  success  
-remove obj 7 success  
-insert obj  7  success  
-remove obj 42 success  
-search range result:  
-5 7   
-start print the skip list  
--2147483648  
--2147483648  
--2147483648  
--2147483648  
--2147483648  
--2147483648  
--2147483648-->7  
--2147483648-->5-->7-->37  
--2147483648-->5-->7-->37  
--2147483648-->5-->7-->31-->37  
-成功: 进程退出代码 0.  
+![图片不能显示](https://github.com/GrassInWind2019/skipList/example_run_result.png)
