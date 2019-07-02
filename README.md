@@ -111,6 +111,35 @@ func (s *SkipList) createNewNodeLevel() int {
 ```  
 Traverse()用于遍历打印skip list  
 func (s *SkipList) Traverse()  
+```
+func (s *SkipList) Traverse() {
+	v, _ := checkSkipListValid(s)
+	if v == false {
+		return
+	}
+
+	var p *Node = s.head
+
+	s.lockList(2)
+	defer s.unLockList(2)
+
+	for i := s.maxLevel - 1; i >= 0; i-- {
+		for {
+			if p != nil {
+				p.O.PrintObj()
+				if p.forward[i] != nil {
+					fmt.Print("-->")
+				}
+				p = p.forward[i]
+			} else {
+				break
+			}
+		}
+		fmt.Println()
+		p = s.head
+	}
+}
+```  
   
 ##  skip list使用介绍
 首先必须调用CreateSkipList()创建一个skip list  
