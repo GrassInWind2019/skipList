@@ -91,8 +91,9 @@ func (s *SkipList) searchInternal(o SkipListObj) (*Node, error) {
 }
 
 func (s *SkipList) Search(o SkipListObj) (SkipListObj, error) {
-	if s == nil {
-		return o, errors.New("skiplist pointer is nil")
+	v, err := checkSkipListValid(s)
+	if v == false {
+		return o, err
 	}
 
 	s.lockList(2)
@@ -111,8 +112,9 @@ func (s *SkipList) Search(o SkipListObj) (SkipListObj, error) {
 
 func (s *SkipList) SearchRange(minObj, maxObj SkipListObj) ([]SkipListObj, error) {
 	res := make([]SkipListObj, 0)
-	if s == nil {
-		return res, errors.New("skip list pointer is nil")
+	v, err := checkSkipListValid(s)
+	if v == false {
+		return res, err
 	}
 
 	s.lockList(2)
@@ -136,14 +138,12 @@ func (s *SkipList) SearchRange(minObj, maxObj SkipListObj) ([]SkipListObj, error
 }
 
 func (s *SkipList) Traverse() {
-	if s == nil {
+	v, _ := checkSkipListValid(s)
+	if v == false {
 		return
 	}
 
 	var p *Node = s.head
-	if p == nil {
-		return
-	}
 
 	s.lockList(2)
 	defer s.unLockList(2)
@@ -166,9 +166,11 @@ func (s *SkipList) Traverse() {
 }
 
 func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
-	if s.head == nil {
-		return false, errors.New("skip list head is null, must use CreateSkipList() before insert")
+	v, err := checkSkipListValid(s)
+	if v == false {
+		return false, err
 	}
+
 	var p *Node = s.head
 	newNode := new(Node)
 	newNode.O = obj
@@ -180,9 +182,6 @@ func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
 
 	for i := level; i >= 0; i-- {
 		for {
-			if p == nil {
-				s.Traverse()
-			}
 			if p.forward[i] != nil && p.forward[i].O.Compare(obj) {
 				p = p.forward[i]
 			} else {
@@ -200,9 +199,11 @@ func (s *SkipList) Insert(obj SkipListObj) (bool, error) {
 }
 
 func (s *SkipList) RemoveNode(obj SkipListObj) (bool, error) {
-	if s == nil || s.head == nil {
-		return false, errors.New("skip list is null, nothing to remove")
+	v, err := checkSkipListValid(s)
+	if v == false {
+		return false, err
 	}
+
 	var update []*Node = make([]*Node, s.maxLevel)
 	p := s.head
 
@@ -234,11 +235,9 @@ func (s *SkipList) RemoveNode(obj SkipListObj) (bool, error) {
 }
 
 func (s *SkipList) ClearSkipList() error {
-	if s == nil {
-		return errors.New("skip list not exist")
-	}
-	if s.head == nil {
-		return errors.New("skip list head is null, must use CreateSkipList() to create skip list")
+	v, err := checkSkipListValid(s)
+	if v == false {
+		return err
 	}
 
 	s.lockList(1)
@@ -253,8 +252,9 @@ func (s *SkipList) ClearSkipList() error {
 }
 
 func (s *SkipList) LenOfSkipList() (int, error) {
-	if s == nil || s.head == nil {
-		return 0, errors.New("skip list is null")
+	v, err := checkSkipListValid(s)
+	if v == false {
+		return -1, err
 	}
 
 	s.lockList(2)
@@ -285,6 +285,7 @@ func CreateSkipList(minObj SkipListObj, args ...int) (*SkipList, error) {
 	s := new(SkipList)
 	s.head = new(Node)
 	s.maxLevel = maxlevel
+	s.head.curLevel = maxlevel - 1
 	s.head.forward = make([]*Node, maxlevel)
 	s.head.O = minObj
 	//The length of skip list didn't include the head node
@@ -311,4 +312,15 @@ func (s *SkipList) createNewNodeLevel() int {
 		level++
 	}
 	return level
+}
+
+func checkSkipListValid(s *SkipList) (bool, error) {
+	if s == nil {
+		return false, errors.New("skip list not exist")
+	}
+	if s.head == nil {
+		return false, errors.New("skip list head is null, must use CreateSkipList() to create skip list")
+	}
+
+	return true, nil
 }

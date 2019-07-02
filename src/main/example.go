@@ -24,11 +24,10 @@ func (a *myInt) PrintObj() {
 }
 
 func searchRangeExample(s *skipList.SkipList) {
-	//var obj, obj2 skipList.SkipListObj
-	var obj, obj2 myInt
-	obj = 0
-	obj2 = 30
-	sliceObj, err := s.SearchRange(&obj, &obj2)
+	var minObj, maxObj myInt
+	minObj = 0
+	maxObj = 30
+	sliceObj, err := s.SearchRange(&minObj, &maxObj)
 	if err != nil {
 		fmt.Print(err)
 		return
@@ -45,8 +44,7 @@ func operationsExample(s *skipList.SkipList) {
 	for i := 0; i < 10; i++ {
 		rand.Seed(time.Now().UnixNano())
 		insertObj := new(myInt)
-		*insertObj = myInt(rand.Intn(20))
-		s.Insert(insertObj)
+		*insertObj = myInt(rand.Intn(50))
 		t, err := s.Insert(insertObj)
 		if t == true {
 			fmt.Println("insert obj ", *insertObj, " success")
@@ -56,7 +54,7 @@ func operationsExample(s *skipList.SkipList) {
 		//sleep 1ms
 		time.Sleep(1000000)
 		rand.Seed(time.Now().UnixNano())
-		obj = myInt(rand.Intn(20))
+		obj = myInt(rand.Intn(50))
 		//search and delete a random generated data
 		s.Search(&obj)
 		s.RemoveNode(&obj)
