@@ -2,8 +2,8 @@
 - [跳表简介](#跳表简介)
 - [skipList](#skiplist)
   * [跳表示意图](#跳表示意图)
-  * [skip list实现简要介绍](#skip list实现简要介绍)
-  * [skip list使用介绍](#skip list使用介绍)
+  * [跳表实现简要介绍](#跳表实现简要介绍)
+  * [跳表使用介绍](#跳表使用介绍)
 
 # 跳表简介  
 跳跃链表是对链表的改进，链表虽然节省空间，但是查找时间复杂度为O（n），效率比较低。
@@ -18,7 +18,7 @@
 # skipList  
 ## 跳表示意图  
 ![图片不能显示](https://github.com/GrassInWind2019/skipList/blob/master/skipList.png)
-## skip list实现简要介绍  
+## 跳表实现简要介绍  
 本人实现的skipList结构如下(在src/skipList/skipList.go)  
 ```
 type Node struct {  
@@ -148,7 +148,7 @@ func (s *SkipList) Traverse() {
 }
 ```  
   
-##  skip list使用介绍
+##  跳表使用介绍
 首先必须调用CreateSkipList()创建一个skip list  
 创建一个最大10层无锁skip list  
 s, err := skipList.CreateSkipList(minObj, 10）  
